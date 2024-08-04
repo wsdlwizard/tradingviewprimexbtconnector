@@ -1,0 +1,6 @@
+pytz
+pyautogui
+easyocr
+pandas
+numpy
+pywin32
