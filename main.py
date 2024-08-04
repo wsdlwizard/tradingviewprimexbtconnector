@@ -27,6 +27,7 @@ if __name__ == "__main__":
     # Run the Flask instance in a separate thread
     import threading
     t = threading.Thread(target=webhook_app.run, args=("0.0.0.0", 80))
+    t.daemon = True
     t.start()
 
     app.mainloop()
