@@ -4,3 +4,5 @@ easyocr
 pandas
 numpy
 pywin32
+csv
+flask
