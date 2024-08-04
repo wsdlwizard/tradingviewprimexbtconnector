@@ -1,5 +1,6 @@
 from datetime import datetime
 from pytz import timezone
+#from flask import Flask, request, jsonify
 import tkinter as tk
 import threading
 import pyautogui
@@ -11,6 +12,8 @@ import win32gui
 import pygetwindow as gw
 import pickle
 import os
+import csv
+
 #import cv2
 
 class SettingsFrame(tk.Frame):
@@ -72,7 +75,7 @@ class SettingsFrame(tk.Frame):
         #self.coord_text.set(f"Mouse position: ({self.x}, {self.y})")
         
     def update_settings(self):
-        print("CLick on the Anaconda Prompt Command box title bar THEN Position Cursor on Amount box to the right of the amount and press enter")
+        print("CLick on this Command box title bar THEN Position Cursor on Amount box to the right of the amount and press enter")
         while True:
             user_input = input("Press Enter to input coords...")
             if user_input == "":
@@ -166,6 +169,10 @@ class SettingsFrame(tk.Frame):
 class PrimeXBTConn(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        #self.app = Flask(__name__)
+        #self.webhook_thread = threading.Thread(target=self.run_flask_server)
+        #self.webhook_thread.daemon = True
+        #self.webhook_thread.start()
         #mouse coords for amount
         self.amount_coords = (0,0)
         self.market_coords = (0,0)
@@ -183,6 +190,8 @@ class PrimeXBTConn(tk.Tk):
         #local widgets
         self.test_button = tk.Button(self, text="Test", command=self.test)
         self.test_button.pack()
+        self.run_button = tk.Button(self, text="Run", command=self.run)
+        self.run_button.pack()
         self.monitor_thread = threading.Thread(target=self.monitor)
         self.monitor_thread.daemon = True
         #self.monitor_thread.start()
@@ -203,15 +212,17 @@ class PrimeXBTConn(tk.Tk):
             #self.init_primexbt()
             #self.save_coords()
     def test(self):
+        self.load_coords()
         print("Testing Buying and selling small position...")
         self.new_mkt_order("0.01","Buy")
         time.sleep(2)
         self.close_position()
-        
-        #self.monitor_thread.start()
+    def run(self):
+        self.monitor_thread.start()
     def monitor(self):
         while True:
             print("Monitoring...")
+            
             time.sleep(1)
     def load_coords(self):
         with open('coords.pkl', 'rb') as f:
@@ -300,4 +311,5 @@ class PrimeXBTConn(tk.Tk):
         self.click_drag_and_type(self.close_position_coords[0], self.close_position_coords[1], 0,"",False)
         time.sleep(0.1)
         self.click_drag_and_type(self.close_position_confirm[0], self.close_position_confirm[1], 0,"",False)
+
         
