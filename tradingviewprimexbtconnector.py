@@ -40,7 +40,7 @@ class SettingsFrame(tk.Frame):
         # Add some space between the label and the settings
         self.settings_separator = tk.Label(self, text="", height=2)
         self.settings_separator.pack(side=tk.TOP)
-        tk.Label(settings_frame, text="One").grid(row=0, column=0, padx=5, pady=5)
+        tk.Label(settings_frame, text="Alert File").grid(row=0, column=0, padx=5, pady=5)
         tk.Entry(settings_frame).grid(row=0, column=1, padx=5, pady=5)
         tk.Label(settings_frame, text="Two").grid(row=1, column=0, padx=5, pady=5)
         tk.Entry(settings_frame).grid(row=1, column=1, padx=5, pady=5)
@@ -73,7 +73,20 @@ class SettingsFrame(tk.Frame):
         return (x,y)
         #print(f"Mouse position: ({x}, {y})")
         #self.coord_text.set(f"Mouse position: ({self.x}, {self.y})")
-        
+    def read_file(self):
+        #print("Reading file")
+        # Read the CSV file into a DataFrame
+        try:
+            df = pd.read_csv('signals.csv')
+            df.set_index('datetime', inplace=True)
+            #print(df)
+            last_row_series = df.iloc[-1]
+            last_row_list = last_row_series.tolist()
+            return (last_row_list, df.index[-1])
+        except FileNotFoundError as e:
+            print(f"File not found: {e}")
+        except IOError        as ioe:
+            print(f"IO Error: {ioe}")
     def update_settings(self):
         print("CLick on this Command box title bar THEN Position Cursor on Amount box to the right of the amount and press enter")
         while True:
@@ -222,13 +235,32 @@ class PrimeXBTConn(tk.Tk):
     def monitor(self):
         while True:
             print("Monitoring...")
-            
-            time.sleep(1)
+            now = datetime.utcnow()
+            ans,anstime = self.read_file()
+            datetime_object = datetime.strptime(anstime, "%Y-%m-%d %H:%M:%S.%f")
+            print(ans)
+            #print(datetime_object)
+            span = now - datetime_object
+            print(f"Seconds: {round(span.total_seconds(),0)}")
+            if span.total_seconds() > self.seconds_signal_elapsed:
+                self.seconds_signal_elapsed = span.total_seconds()
+                print("No new signal detected")
+            else:
+                print("New signal detected")
+                self.telegram_connection.send_message(f"New signal detected: {ans}")
+                self.seconds_signal_elapsed = span.total_seconds()
+                self.process_signal(ans)
+            time.sleep(10)
     def load_coords(self):
         with open('coords.pkl', 'rb') as f:
             self.amount_coords,self.market_coords,self.stop_coords,self.limit_coords,self.buy_coords,self.sell_coords,self.place_order_coords,self.place_order_confirm,self.close_position_coords,self.close_position_confirm = pickle.load(f)
         
-
+    def process_signal(self,signal):
+        print("Processing signal...")
+        if signal[2] == "Buy":
+            self.new_mkt_order(self.amount,"Buy")
+        elif signal[2] == "Sell":
+            self.new_mkt_order(self.amount,"Sell")
     def delete_back(self):
         print("Closing primexbtmanager")
     def move_window_to_top_left(self,process_name):
