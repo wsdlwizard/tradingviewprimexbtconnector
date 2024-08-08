@@ -5,6 +5,7 @@
 
 # User-specific files
 config.py
+coords.pkl
 *.pyc
 *.rsuser
 *.suo
@@ -364,3 +365,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/vsenv
