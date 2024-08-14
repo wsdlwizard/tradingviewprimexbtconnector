@@ -10,7 +10,7 @@ def webhook():
     file_path1 = "c:\\data\\lorenze.csv"
     
     # Specify the path to the file in the shared folder
-    file_path = os.path.join(network_file, "lorenze.csv")
+    #file_path = os.path.join(network_file, "lorenze.csv")
     if request.method == 'POST':
         data = request.json
         send_message(f"Received webhook data: {data}")

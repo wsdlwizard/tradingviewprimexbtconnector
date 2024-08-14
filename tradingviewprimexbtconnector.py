@@ -203,6 +203,10 @@ class PrimeXBTConn(tk.Tk):
         self.process_name_to_find = "Firefox"
         self.move_window_to_top_left(self.process_name_to_find)
         self.ascii_banner()
+        # Move the mouse to click refresh every hour
+        self.thread_refresh = threading.Thread(target=self.click_refresh)
+        self.thread_refresh.setDaemon(True)
+        self.thread_refresh.start()
         print("\nThanks for downloading my code! Support me on Patreon: patreon.com/wsdlwizard\n")
         if os.path.exists('coords.pkl'):
             self.load_coords()
@@ -234,6 +238,12 @@ class PrimeXBTConn(tk.Tk):
             print(f"File not found: {e}")
         except IOError        as ioe:
             print(f"IO Error: {ioe}")
+    def click_refresh(self):
+        while True:
+            time.sleep(3600)
+            print("Clicking on refresh!!!")
+            #self.click_drag_and_type(2214, 1510, 0,"",False)
+            self.click_drag_and_type(158, 101, 0,"",False)
     def monitor(self):
         while True:
             print("Monitoring...")
