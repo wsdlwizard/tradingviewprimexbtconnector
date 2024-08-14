@@ -224,7 +224,7 @@ class PrimeXBTConn(tk.Tk):
         #print("Reading file")
         # Read the CSV file into a DataFrame
         try:
-            df = pd.read_csv('C:\\Users\\Public\\lorenze.csv')
+            df = pd.read_csv('C:\\Data\\lorenze.csv')
             df.set_index('datetime', inplace=True)
             #print(df)
             last_row_series = df.iloc[-1]
@@ -263,6 +263,10 @@ class PrimeXBTConn(tk.Tk):
             self.new_mkt_order(self.amount,"Buy")
         elif signal[2] == "LDC Open Short":
             self.new_mkt_order(self.amount,"Sell")
+        elif signal[2] == "LDC Close Long":
+            self.close_position()
+        elif signal[2] == "LDC Close Short":
+            self.close_position()
     def delete_back(self):
         print("Closing primexbtmanager")
     def move_window_to_top_left(self,process_name):
