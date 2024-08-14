@@ -73,20 +73,7 @@ class SettingsFrame(tk.Frame):
         return (x,y)
         #print(f"Mouse position: ({x}, {y})")
         #self.coord_text.set(f"Mouse position: ({self.x}, {self.y})")
-    def read_file(self):
-        #print("Reading file")
-        # Read the CSV file into a DataFrame
-        try:
-            df = pd.read_csv('signals.csv')
-            df.set_index('datetime', inplace=True)
-            #print(df)
-            last_row_series = df.iloc[-1]
-            last_row_list = last_row_series.tolist()
-            return (last_row_list, df.index[-1])
-        except FileNotFoundError as e:
-            print(f"File not found: {e}")
-        except IOError        as ioe:
-            print(f"IO Error: {ioe}")
+    
     def update_settings(self):
         print("CLick on this Command box title bar THEN Position Cursor on Amount box to the right of the amount and press enter")
         while True:
@@ -198,6 +185,7 @@ class PrimeXBTConn(tk.Tk):
         self.close_position_coords = (0,0)
         self.close_position_confirm = (0,0)
         self.amount = "1.01"
+        self.seconds_signal_elapsed = 0
         # Create an instance of SettingsFrame
         self.settings_frame = SettingsFrame(self)
         #local widgets
@@ -232,6 +220,20 @@ class PrimeXBTConn(tk.Tk):
         self.close_position()
     def run(self):
         self.monitor_thread.start()
+    def read_file(self):
+        #print("Reading file")
+        # Read the CSV file into a DataFrame
+        try:
+            df = pd.read_csv('C:\\Users\\Public\\lorenze.csv')
+            df.set_index('datetime', inplace=True)
+            #print(df)
+            last_row_series = df.iloc[-1]
+            last_row_list = last_row_series.tolist()
+            return (last_row_list, df.index[-1])
+        except FileNotFoundError as e:
+            print(f"File not found: {e}")
+        except IOError        as ioe:
+            print(f"IO Error: {ioe}")
     def monitor(self):
         while True:
             print("Monitoring...")
@@ -247,7 +249,7 @@ class PrimeXBTConn(tk.Tk):
                 print("No new signal detected")
             else:
                 print("New signal detected")
-                self.telegram_connection.send_message(f"New signal detected: {ans}")
+                #self.telegram_connection.send_message(f"New signal detected: {ans}")
                 self.seconds_signal_elapsed = span.total_seconds()
                 self.process_signal(ans)
             time.sleep(10)
@@ -257,9 +259,9 @@ class PrimeXBTConn(tk.Tk):
         
     def process_signal(self,signal):
         print("Processing signal...")
-        if signal[2] == "Buy":
+        if signal[2] == "LDC Open Long":
             self.new_mkt_order(self.amount,"Buy")
-        elif signal[2] == "Sell":
+        elif signal[2] == "LDC Open Short":
             self.new_mkt_order(self.amount,"Sell")
     def delete_back(self):
         print("Closing primexbtmanager")
