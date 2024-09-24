@@ -31,6 +31,12 @@ class SettingsFrame(tk.Frame):
         self.place_order_confirm = (0,0)
         self.close_position_coords = (0,0)
         self.close_position_confirm = (0,0)
+        #take Profit and Stop Loss button coords
+        self.tpsl_initial = (0,0)
+        self.take_profit_price_coords = (0,0)
+        self.stop_loss_price_coords = (0,0)
+        self.place_sl_tp_set_button = (0,0)
+        
         # Create label and text box in a group called "Settings"
         self.settings_label = tk.Label(self, text="Settings", font=("Arial", 14))
         self.settings_label.pack(side=tk.TOP)
@@ -156,14 +162,48 @@ class SettingsFrame(tk.Frame):
                 self.close_position_confirm = ans
                 print(f"Coords: {self.close_position_confirm}")
                 break
+        print("Position cursor over TP//SL edit pencil and press enter")
+        while True:
+            user_input = input("Press Enter to save coords...")
+            if user_input == "":
+                ans = self.print_mouse_coordinate()
+                self.tpsl_initial = ans
+                print(f"Coords: {self.tpsl_initial}")
+                break
+        print("Position cursor over Take Profit Price box and press enter")
+        while True:
+            user_input = input("Press Enter to save coords...")
+            if user_input == "":
+                ans = self.print_mouse_coordinate()
+                self.take_profit_price_coords = ans
+                print(f"Coords: {self.take_profit_price_coords}")
+                break
+        print("Position cursor over Stop Loss Price box and press enter")
+        while True:
+            user_input = input("Press Enter to save coords...")
+            if user_input == "":
+                ans = self.print_mouse_coordinate()
+                self.stop_loss_price_coords = ans
+                print(f"Coords: {self.stop_loss_price_coords}")
+                break
+        print("Position cursor over Set button and press enter")
+        while True:
+            user_input = input("Press Enter to save coords...")
+            if user_input == "":
+                ans = self.print_mouse_coordinate()
+                self.place_sl_tp_set_button = ans
+                print(f"Coords: {self.place_sl_tp_set_button}")
+                break
+                
+
         self.save_coords()
         print("Settings updated!")
     def save_coords(self):
         with open('coords.pkl', 'wb') as f:
-            pickle.dump([self.amount_coords,self.market_coords,self.stop_coords,self.limit_coords,self.buy_coords,self.sell_coords,self.place_order_coords,self.place_order_confirm,self.close_position_coords,self.close_position_confirm], f)
+            pickle.dump([self.amount_coords,self.market_coords,self.stop_coords,self.limit_coords,self.buy_coords,self.sell_coords,self.place_order_coords,self.place_order_confirm,self.close_position_coords,self.close_position_confirm,self.tpsl_initial,self.take_profit_price_coords,self.stop_loss_price_coords,self.place_sl_tp_set_button], f)
     def load_coords(self):
         with open('coords.pkl', 'rb') as f:
-            self.amount_coords,self.market_coords,self.stop_coords,self.limit_coords,self.buy_coords,self.sell_coords,self.place_order_coords,self.place_order_confirm,self.close_position_coords,self.close_position_confirm = pickle.load(f)
+            self.amount_coords,self.market_coords,self.stop_coords,self.limit_coords,self.buy_coords,self.sell_coords,self.place_order_coords,self.place_order_confirm,self.close_position_coords,self.close_position_confirm,self.tpsl_initial,self.take_profit_price_coords,self.stop_loss_price_coords,self.place_sl_tp_set_button = pickle.load(f)
         
 
 class PrimeXBTConn(tk.Tk):
@@ -184,8 +224,13 @@ class PrimeXBTConn(tk.Tk):
         self.place_order_confirm = (0,0)
         self.close_position_coords = (0,0)
         self.close_position_confirm = (0,0)
-        self.amount = "1.01"
+        self.amount = "4.04"
         self.seconds_signal_elapsed = 0
+        #take Profit and Stop Loss button coords
+        self.tpsl_initial = (0,0)
+        self.take_profit_price_coords = (0,0)
+        self.stop_loss_price_coords = (0,0)
+        self.place_sl_tp_set_button = (0,0)
         # Create an instance of SettingsFrame
         self.settings_frame = SettingsFrame(self)
         #local widgets
@@ -208,20 +253,29 @@ class PrimeXBTConn(tk.Tk):
         self.thread_refresh.setDaemon(True)
         self.thread_refresh.start()
         print("\nThanks for downloading my code! Support me on Patreon: patreon.com/wsdlwizard\n")
+        #tp and sl values
+        self.tp_percent = 0.005
+        self.sl_percent = 0.0075
         if os.path.exists('coords.pkl'):
             self.load_coords()
-            #self.monitor_thread.start()
+            #self.settings_frame.update_settings()
+            #self.save_coords()
+            #self.load_coords()
+            self.monitor_thread.start()
         else:
             print("No coords found")
             print("Please update settings")
             #self.init_primexbt()
             #self.save_coords()
     def test(self):
-        self.load_coords()
-        print("Testing Buying and selling small position...")
-        self.new_mkt_order("0.01","Buy")
+        #self.load_coords()
+        #self.init_tp_sl_coords()
+        self.set_tp_sl("63928.0","62928.0")
+
+        #print("Testing Buying and selling small position...")
+        #self.new_mkt_order("0.01","Buy")
         time.sleep(2)
-        self.close_position()
+        #self.close_position()
     def run(self):
         self.monitor_thread.start()
     def read_file(self):
@@ -265,20 +319,64 @@ class PrimeXBTConn(tk.Tk):
             time.sleep(10)
     def load_coords(self):
         with open('coords.pkl', 'rb') as f:
-            self.amount_coords,self.market_coords,self.stop_coords,self.limit_coords,self.buy_coords,self.sell_coords,self.place_order_coords,self.place_order_confirm,self.close_position_coords,self.close_position_confirm = pickle.load(f)
+            self.amount_coords,self.market_coords,self.stop_coords,self.limit_coords,self.buy_coords,self.sell_coords,self.place_order_coords,self.place_order_confirm,self.close_position_coords,self.close_position_confirm,self.tpsl_initial,self.take_profit_price_coords,self.stop_loss_price_coords,self.place_sl_tp_set_button = pickle.load(f)
         
     def process_signal(self,signal):
         print("Processing signal...")
         if signal[2] == "LDC Open Long":
+            self.close_position()
+            time.sleep(1)
             self.new_mkt_order(self.amount,"Buy")
+            time.sleep(0.5)
+            self.set_tp_sl(str(round((float(signal[1]) + (float(signal[1]) * self.tp_percent)),1)),str(round((float(signal[1]) - (float(signal[1]) * self.sl_percent)),1)))
+            
+            
         elif signal[2] == "LDC Open Short":
+            self.close_position()
+            time.sleep(1)
             self.new_mkt_order(self.amount,"Sell")
+            time.sleep(0.5)
+            self.set_tp_sl(str(round((float(signal[1]) - (float(signal[1]) * self.tp_percent)),1)),str(round((float(signal[1]) + (float(signal[1]) * self.sl_percent)),1)))
         elif signal[2] == "LDC Close Long":
             self.close_position()
         elif signal[2] == "LDC Close Short":
             self.close_position()
     def delete_back(self):
         print("Closing primexbtmanager")
+    def init_tp_sl_coords(self):
+        print("Position cursor over TP//SL edit pencil and press enter")
+        while True:
+            user_input = input("Press Enter to save coords...")
+            if user_input == "":
+                ans = self.print_mouse_coordinate()
+                self.tpsl_initial = ans
+                print(f"Coords: {self.tpsl_initial}")
+                break
+        print("Position cursor over Take Profit Price box and press enter")
+        while True:
+            user_input = input("Press Enter to save coords...")
+            if user_input == "":
+                ans = self.print_mouse_coordinate()
+                self.take_profit_price_coords = ans
+                print(f"Coords: {self.take_profit_price_coords}")
+                break
+        print("Position cursor over Stop Loss Price box and press enter")
+        while True:
+            user_input = input("Press Enter to save coords...")
+            if user_input == "":
+                ans = self.print_mouse_coordinate()
+                self.stop_loss_price_coords = ans
+                print(f"Coords: {self.stop_loss_price_coords}")
+                break
+        print("Position cursor over Set button and press enter")
+        while True:
+            user_input = input("Press Enter to save coords...")
+            if user_input == "":
+                ans = self.print_mouse_coordinate()
+                self.place_sl_tp_set_button = ans
+                print(f"Coords: {self.place_sl_tp_set_button}")
+                break
+                
     def move_window_to_top_left(self,process_name):
         try:
             # Get all windows matching the process name
@@ -359,5 +457,13 @@ class PrimeXBTConn(tk.Tk):
         self.click_drag_and_type(self.close_position_coords[0], self.close_position_coords[1], 0,"",False)
         time.sleep(0.1)
         self.click_drag_and_type(self.close_position_confirm[0], self.close_position_confirm[1], 0,"",False)
+    def set_tp_sl(self,tp,sl):
+        self.click_drag_and_type(self.tpsl_initial[0], self.tpsl_initial[1], 0,"",False)
+        time.sleep(0.1)
+        self.click_drag_and_type(self.take_profit_price_coords[0], self.take_profit_price_coords[1], 0,tp,False)
+        time.sleep(0.1)
+        self.click_drag_and_type(self.stop_loss_price_coords[0], self.stop_loss_price_coords[1], 0,sl,False)
+        time.sleep(0.1)
+        self.click_drag_and_type(self.place_sl_tp_set_button[0], self.place_sl_tp_set_button[1], 0,"",False)
 
         
